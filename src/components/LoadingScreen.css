@@ -1,0 +1,223 @@
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-cream);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.loading-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+/* Rings animation */
+.loading-rings {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid var(--color-rose);
+}
+
+.ring-1 {
+  width: 200px;
+  height: 200px;
+  border-color: rgba(212, 165, 165, 0.2);
+}
+
+.ring-2 {
+  width: 160px;
+  height: 160px;
+  border-color: rgba(212, 165, 165, 0.4);
+}
+
+.ring-3 {
+  width: 120px;
+  height: 120px;
+  border-color: rgba(212, 165, 165, 0.6);
+}
+
+.loading-icon {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-rose), var(--color-dusty-rose));
+  border-radius: 50%;
+  box-shadow: 
+    0 8px 32px rgba(212, 165, 165, 0.4),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.heart-main {
+  color: white;
+}
+
+/* Sparkles */
+.sparkle-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sparkle {
+  position: absolute;
+  color: var(--color-gold);
+}
+
+/* Milestone display */
+.loading-milestone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+}
+
+.milestone-label {
+  font-size: 0.875rem;
+  color: var(--color-warm-gray);
+  font-weight: 300;
+}
+
+.milestone-name {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: var(--color-charcoal);
+}
+
+/* Loading message */
+.loading-message {
+  font-size: 1rem;
+  color: var(--color-warm-gray);
+  margin-bottom: var(--spacing-xl);
+  min-height: 1.5em;
+}
+
+/* Progress bar */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 200px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 4px;
+  background: var(--color-light-gray);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-rose), var(--color-dusty-rose));
+  border-radius: var(--radius-full);
+  transition: width 0.1s linear;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--color-warm-gray);
+  font-weight: 500;
+}
+
+/* Background gradients */
+.loading-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.bg-gradient {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.bg-gradient-1 {
+  width: 400px;
+  height: 400px;
+  background: rgba(212, 165, 165, 0.3);
+  top: -100px;
+  right: -100px;
+  animation: float1 8s ease-in-out infinite;
+}
+
+.bg-gradient-2 {
+  width: 300px;
+  height: 300px;
+  background: rgba(184, 197, 180, 0.25);
+  bottom: -50px;
+  left: -50px;
+  animation: float2 10s ease-in-out infinite;
+}
+
+.bg-gradient-3 {
+  width: 250px;
+  height: 250px;
+  background: rgba(197, 165, 114, 0.2);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: float3 12s ease-in-out infinite;
+}
+
+@keyframes float1 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-30px, 30px); }
+}
+
+@keyframes float2 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -20px); }
+}
+
+@keyframes float3 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+@media (max-width: 480px) {
+  .loading-rings {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .ring-1 { width: 150px; height: 150px; }
+  .ring-2 { width: 120px; height: 120px; }
+  .ring-3 { width: 90px; height: 90px; }
+  
+  .loading-icon {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .heart-main {
+    width: 28px;
+    height: 28px;
+  }
+}
+

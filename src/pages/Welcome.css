@@ -1,0 +1,167 @@
+.welcome {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-content {
+  max-width: 480px;
+  text-align: center;
+  z-index: 2;
+}
+
+.welcome-logo {
+  margin-bottom: var(--spacing-xl);
+}
+
+.logo-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, var(--color-rose), var(--color-dusty-rose));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 
+    0 8px 32px rgba(212, 165, 165, 0.4),
+    inset 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.heart-icon {
+  width: 36px;
+  height: 36px;
+  color: white;
+}
+
+.welcome-title {
+  font-size: 3rem;
+  font-weight: 600;
+  color: var(--color-charcoal);
+  margin-bottom: var(--spacing-md);
+  letter-spacing: -0.02em;
+}
+
+.welcome-tagline {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--color-rose);
+  margin-bottom: var(--spacing-lg);
+}
+
+.welcome-description {
+  font-size: 1rem;
+  color: var(--color-warm-gray);
+  line-height: 1.7;
+  margin-bottom: var(--spacing-2xl);
+  font-weight: 300;
+}
+
+.welcome-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--color-charcoal);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-lg);
+}
+
+.welcome-cta:hover {
+  background: #2a2a2a;
+  box-shadow: var(--shadow-xl);
+}
+
+.welcome-features {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-3xl);
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.feature-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-warm-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.feature-divider {
+  width: 4px;
+  height: 4px;
+  background: var(--color-dusty-rose);
+  border-radius: 50%;
+}
+
+/* Decorative rings */
+.welcome-decoration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.deco-ring {
+  position: absolute;
+  border: 1px solid var(--color-light-gray);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.deco-ring-1 {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -200px;
+}
+
+.deco-ring-2 {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+}
+
+.deco-ring-3 {
+  width: 200px;
+  height: 200px;
+  top: 50%;
+  left: 10%;
+  transform: translateY(-50%);
+}
+
+@media (max-width: 640px) {
+  .welcome-title {
+    font-size: 2.25rem;
+  }
+  
+  .welcome-tagline {
+    font-size: 1rem;
+  }
+  
+  .welcome-features {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .feature-divider {
+    display: none;
+  }
+}
+
