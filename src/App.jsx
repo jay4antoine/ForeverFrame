@@ -1,22 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Welcome from './pages/Welcome';
+import AuthScreen from './pages/AuthScreen';
 import MainApp from './pages/MainApp';
 import LoadingScreen from './components/LoadingScreen';
 import PreviewScreen from './pages/PreviewScreen';
 import ErrorScreen from './components/ErrorScreen';
-import { enhanceImage, isAPIConfigured } from './api/nanoBananaPro';
+import { enhanceImageViaBackend } from './lib/api';
+import { uploadBase64Image, createImageRecord } from './lib/database';
+import { isSupabaseConfigured } from './lib/supabase';
+import { enhanceImage as enhanceImageLocal, isAPIConfigured } from './api/nanoBananaPro';
 import './App.css';
 
-function App() {
+function AppContent() {
+  const { user, loading: authLoading, isAuthenticated, isConfigured } = useAuth();
   const [currentScreen, setCurrentScreen] = useState('welcome');
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedMilestone, setSelectedMilestone] = useState(null);
   const [processedImage, setProcessedImage] = useState(null);
+  const [currentImageId, setCurrentImageId] = useState(null);
   const [error, setError] = useState(null);
 
+  // Handle authentication state changes
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && currentScreen === 'auth') {
+      setCurrentScreen('main');
+    }
+  }, [authLoading, isAuthenticated, currentScreen]);
+
   const handleGetStarted = () => {
-    setCurrentScreen('main');
+    if (isConfigured && !isAuthenticated) {
+      setCurrentScreen('auth');
+    } else {
+      setCurrentScreen('main');
+    }
+  };
+
+  const handleAuthBack = () => {
+    setCurrentScreen('welcome');
   };
 
   const handleImageSelect = (imageData) => {
@@ -32,21 +54,46 @@ function App() {
       setCurrentScreen('loading');
       setError(null);
 
-      // Check if API is configured
-      if (!isAPIConfigured()) {
-        // Fallback: use original image if API not configured
-        console.warn('Nano Banana Pro API key not configured. Using original image.');
-        setTimeout(() => {
-          setProcessedImage(selectedImage);
-          setCurrentScreen('preview');
-        }, 3000);
-        return;
-      }
-
       try {
-        // Call Nano Banana Pro API to enhance the image
-        const enhancedImageUrl = await enhanceImage(selectedImage, selectedMilestone.id);
+        let enhancedImageUrl;
+        let imageId = null;
+
+        // Check if backend is configured (Supabase)
+        if (isSupabaseConfigured() && isAuthenticated) {
+          // Upload original image to storage first
+          const { data: uploadData, error: uploadError } = await uploadBase64Image(
+            selectedImage,
+            user.id,
+            'originals'
+          );
+
+          if (uploadError) {
+            console.warn('Failed to upload original image:', uploadError);
+          }
+
+          // Call backend Edge Function for secure AI processing
+          const result = await enhanceImageViaBackend({
+            imageUrl: uploadData?.url,
+            imageBase64: selectedImage,
+            milestoneId: selectedMilestone.id,
+            milestoneName: selectedMilestone.name,
+          });
+
+          enhancedImageUrl = result.enhanced_image_url;
+          imageId = result.image_id;
+        } else if (isAPIConfigured()) {
+          // Fallback to local API call if backend not configured
+          console.warn('Using local API call - API key exposed in client');
+          enhancedImageUrl = await enhanceImageLocal(selectedImage, selectedMilestone.id);
+        } else {
+          // Demo mode - just use original image
+          console.warn('No API configured. Using original image for demo.');
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          enhancedImageUrl = selectedImage;
+        }
+
         setProcessedImage(enhancedImageUrl);
+        setCurrentImageId(imageId);
         setCurrentScreen('preview');
       } catch (err) {
         console.error('Failed to enhance image:', err);
@@ -60,6 +107,7 @@ function App() {
     setCurrentScreen('main');
     setProcessedImage(null);
     setSelectedMilestone(null);
+    setCurrentImageId(null);
     setError(null);
   };
 
@@ -68,6 +116,7 @@ function App() {
     setSelectedImage(null);
     setSelectedMilestone(null);
     setProcessedImage(null);
+    setCurrentImageId(null);
     setError(null);
   };
 
@@ -76,11 +125,25 @@ function App() {
     handleGenerate();
   };
 
+  // Show loading while checking auth state
+  if (authLoading) {
+    return (
+      <div className="app">
+        <div className="app-loading">
+          <div className="loading-spinner" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <AnimatePresence mode="wait">
         {currentScreen === 'welcome' && (
           <Welcome key="welcome" onGetStarted={handleGetStarted} />
+        )}
+        {currentScreen === 'auth' && (
+          <AuthScreen key="auth" onBack={handleAuthBack} />
         )}
         {currentScreen === 'main' && (
           <MainApp
@@ -101,6 +164,7 @@ function App() {
             originalImage={selectedImage}
             processedImage={processedImage}
             milestone={selectedMilestone}
+            imageId={currentImageId}
             onBack={handleBackToMain}
             onNewPhoto={handleNewPhoto}
           />
@@ -115,6 +179,14 @@ function App() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

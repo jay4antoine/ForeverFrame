@@ -10,17 +10,29 @@ ForeverFrame is a native iOS app that helps couples visually preview, enhance, a
 - **Milestone Selection** - Choose from various life milestones (First Date, Engagement, Wedding, Anniversary, etc.)
 - **AI Enhancement** - Transform your photos into cinematic, ultra-realistic scenes using Nano Banana Pro
 - **Before/After Comparison** - Interactive slider to see the transformation
+- **Cloud Gallery** - All your memories stored securely in the cloud
+- **User Authentication** - Sign in with Email, Google, or Apple
 - **Save & Share** - Download enhanced photos or share directly with loved ones
 - **Native iOS Experience** - Haptic feedback, native sharing, and iOS safe area support
 
 ## Tech Stack
 
+### Frontend
 - React 18
 - Vite
 - Capacitor (iOS native wrapper)
 - Framer Motion (animations)
 - Lucide React (icons)
-- Nano Banana Pro API (AI image enhancement)
+
+### Backend (Supabase)
+- PostgreSQL Database
+- Row Level Security (RLS)
+- Edge Functions (Deno)
+- Authentication (Email, Google, Apple)
+- Storage (for images)
+
+### AI
+- Nano Banana Pro API (image enhancement)
 
 ## Getting Started
 
@@ -30,7 +42,8 @@ ForeverFrame is a native iOS app that helps couples visually preview, enhance, a
 - npm or yarn
 - Xcode 15+ (for iOS development)
 - macOS (required for iOS builds)
-- Nano Banana Pro API key (get one at https://api.nanobananapro.site/)
+- Supabase account (free tier available)
+- Nano Banana Pro API key
 
 ### Installation
 
@@ -48,15 +61,14 @@ npm install
 cp .env.example .env
 ```
 
-### API Configuration
+### Backend Setup
 
-1. Sign up for an account at [Nano Banana Pro](https://api.nanobananapro.site/)
-2. Get your API key from the dashboard
-3. Add your API key to the `.env` file:
-
-```bash
-VITE_NANO_BANANA_PRO_API_KEY=your_api_key_here
-```
+Follow the detailed guide in [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) to:
+1. Create a Supabase project
+2. Run database migrations
+3. Configure storage
+4. Deploy the Edge Function
+5. Set up authentication providers
 
 ### Development (Web Preview)
 
@@ -79,95 +91,102 @@ npm run ios:open
 npm run ios:run
 ```
 
-## How the AI Enhancement Works
+## Architecture
 
-ForeverFrame uses Nano Banana Pro's advanced AI to transform your photos based on the selected milestone:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        iOS App (Capacitor)                       │
+├─────────────────────────────────────────────────────────────────┤
+│                     React Frontend (Vite)                        │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │   Welcome   │  │   MainApp   │  │   Preview/Gallery       │  │
+│  │   Screen    │  │   + Upload  │  │   + Comparison          │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────┤
+│                    Supabase Client Library                       │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         Supabase                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
+│  │    Auth     │  │  Database   │  │       Storage           │  │
+│  │   (Users)   │  │  (Images,   │  │   (Image files)         │  │
+│  │             │  │   Edits)    │  │                         │  │
+│  └─────────────┘  └─────────────┘  └─────────────────────────┘  │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │                    Edge Function                             ││
+│  │                  (enhance-image)                             ││
+│  │                        │                                     ││
+│  │                        ▼                                     ││
+│  │              Nano Banana Pro API                             ││
+│  └─────────────────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────────────────┘
+```
 
-| Milestone | Enhancement Style |
-|-----------|-------------------|
-| **First Date** | Romantic, golden hour lighting with cozy cafe/city ambiance |
-| **Engagement** | Dreamy, ethereal atmosphere with elegant bridal photography lighting |
-| **Wedding Day** | Timeless, fairy-tale quality with classic wedding photography style |
-| **Anniversary** | Warm, nostalgic lighting evoking comfort and deep connection |
-| **Vacation** | Vibrant, dramatic travel photography with cinematic composition |
-| **Celebration** | Festive, energetic atmosphere with joyful, candid editorial style |
+## Database Schema
 
-All enhancements preserve the original subjects' faces and identities while upgrading the overall scene to ultra-high quality 4K resolution.
+### Tables
+
+**profiles** - User profiles (extends Supabase auth)
+- `id`, `email`, `full_name`, `avatar_url`, `subscription_tier`, `images_generated`
+
+**images** - Enhanced images
+- `id`, `user_id`, `original_image_url`, `enhanced_image_url`, `milestone_id`, `milestone_name`, `prompt`, `status`, `metadata`
+
+**edits** - Edit history (for future features)
+- `id`, `image_id`, `edit_type`, `edit_params`, `result_image_url`
 
 ## Project Structure
 
 ```
 ForeverFrame/
 ├── ios/                         # Native iOS project
-│   └── App/
-│       └── App/
-│           ├── AppDelegate.swift
-│           └── public/          # Built web assets
+├── supabase/
+│   ├── functions/
+│   │   └── enhance-image/       # Edge Function for AI processing
+│   └── migrations/              # Database schema
 ├── src/
-│   ├── api/
-│   │   └── nanoBananaPro.js     # Nano Banana Pro API integration
-│   ├── components/
-│   │   ├── LoadingScreen.jsx    # Full-screen loading animation
-│   │   └── ErrorScreen.jsx      # Error handling screen
-│   ├── pages/
-│   │   ├── Welcome.jsx          # Welcome/landing screen
-│   │   ├── MainApp.jsx          # Main interface with upload & milestones
-│   │   └── PreviewScreen.jsx    # Before/after comparison view
-│   ├── App.jsx                  # Main app component with routing
-│   ├── App.css                  # Global app styles
-│   ├── index.css                # Base styles & CSS variables
-│   └── main.jsx                 # Entry point
-├── .env.example                 # Environment variables template
-├── capacitor.config.json        # Capacitor configuration
-├── package.json
+│   ├── api/                     # Local API (fallback)
+│   ├── components/              # Reusable components
+│   ├── context/                 # React contexts (Auth)
+│   ├── lib/                     # Supabase client & utilities
+│   └── pages/                   # Screen components
+├── .env.example                 # Environment template
+├── SUPABASE_SETUP.md           # Backend setup guide
 └── README.md
 ```
 
-## Design Philosophy
+## Security
 
-ForeverFrame is designed to be:
+- **API Key Protection**: Nano Banana Pro API key is stored securely in Supabase Edge Function secrets, never exposed to the client
+- **Row Level Security**: All database tables have RLS policies ensuring users can only access their own data
+- **Authenticated Requests**: All API calls require valid JWT tokens
 
-- **Friendly** - Warm, inviting color palette with soft rose and sage tones
-- **Minimal** - Clean interface that focuses on the content
-- **Accessible** - Works for couples of all ages
-- **Native** - Feels like a true iOS app with haptics and native gestures
+## How AI Enhancement Works
 
-## iOS-Specific Features
+Each milestone has a customized AI prompt:
 
-- Safe area insets for notch and home indicator
-- Native haptic feedback on interactions
-- Native share sheet
-- Splash screen
-- Status bar integration
+| Milestone | Enhancement Style |
+|-----------|-------------------|
+| **First Date** | Romantic, golden hour lighting with cozy cafe/city ambiance |
+| **Engagement** | Dreamy, ethereal atmosphere with elegant bridal photography |
+| **Wedding Day** | Timeless, fairy-tale quality with classic wedding photography |
+| **Anniversary** | Warm, nostalgic lighting evoking comfort and connection |
+| **Vacation** | Vibrant, dramatic travel photography with cinematic composition |
+| **Celebration** | Festive, energetic atmosphere with joyful, candid editorial |
 
-## API Rate Limits
+All enhancements preserve original faces and identities while upgrading to 4K resolution.
 
-Be aware of your Nano Banana Pro API usage limits. Each image enhancement counts as one API call. Monitor your usage through the Nano Banana Pro dashboard.
+## Future Enhancements
 
-## Troubleshooting
+The database schema is designed to support future features:
 
-### "API key not configured" error
-Make sure you've created a `.env` file with your API key. Copy from `.env.example` and add your key.
-
-### Image enhancement fails
-- Check your internet connection
-- Verify your API key is valid
-- Ensure the image file isn't too large (recommended: under 10MB)
-- Try a different image
-
-### iOS build fails
-- Make sure Xcode is up to date
-- Run `npm run ios:build` to sync web assets
-- Open Xcode and check for any signing/provisioning issues
-
-## Roadmap
-
-- [ ] Add gallery persistence with Core Data
-- [ ] Implement user accounts
-- [ ] Add more milestone options
-- [ ] Camera integration for direct photo capture
-- [ ] iCloud sync
-- [ ] Multiple image fusion support
+- [ ] **Edit History** - Track all edits made to an image
+- [ ] **Multiple Edit Types** - Add filters, adjustments, overlays
+- [ ] **Undo/Redo** - Navigate through edit history
+- [ ] **Collaboration** - Share galleries with partners
+- [ ] **Subscription Tiers** - Premium features for paid users
 
 ## License
 

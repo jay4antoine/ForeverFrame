@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Heart, 
@@ -13,8 +13,15 @@ import {
   Settings,
   FolderOpen,
   Home,
-  X
+  X,
+  LogOut,
+  User,
+  Trash2,
+  ChevronRight
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { getUserImages, deleteImage } from '../lib/database';
+import { isSupabaseConfigured } from '../lib/supabase';
 import './MainApp.css';
 
 const milestones = [
@@ -36,6 +43,44 @@ function MainApp({
   const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('home');
   const [dragActive, setDragActive] = useState(false);
+  const [galleryImages, setGalleryImages] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
+
+  const { user, signOut, isAuthenticated } = useAuth();
+
+  // Fetch gallery images when tab changes to gallery
+  useEffect(() => {
+    if (activeTab === 'gallery' && isAuthenticated && isSupabaseConfigured()) {
+      fetchGalleryImages();
+    }
+  }, [activeTab, isAuthenticated]);
+
+  const fetchGalleryImages = async () => {
+    if (!user) return;
+    
+    setGalleryLoading(true);
+    try {
+      const { data, error } = await getUserImages(user.id);
+      if (error) throw error;
+      setGalleryImages(data || []);
+    } catch (err) {
+      console.error('Failed to fetch gallery:', err);
+    } finally {
+      setGalleryLoading(false);
+    }
+  };
+
+  const handleDeleteImage = async (imageId) => {
+    try {
+      const { error } = await deleteImage(imageId);
+      if (error) throw error;
+      setGalleryImages(prev => prev.filter(img => img.id !== imageId));
+      setSelectedGalleryImage(null);
+    } catch (err) {
+      console.error('Failed to delete image:', err);
+    }
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -84,6 +129,19 @@ function MainApp({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
   };
 
   const canGenerate = selectedImage && selectedMilestone;
@@ -189,11 +247,81 @@ function MainApp({
               <h1>Your Gallery</h1>
               <p>All your transformed memories in one place</p>
             </div>
-            <div className="empty-gallery">
-              <Image size={48} strokeWidth={1} />
-              <p>No memories yet</p>
-              <span>Transform your first photo to start your collection</span>
-            </div>
+            
+            {!isAuthenticated || !isSupabaseConfigured() ? (
+              <div className="empty-gallery">
+                <Image size={48} strokeWidth={1} />
+                <p>Sign in to save memories</p>
+                <span>Your gallery will sync across all devices</span>
+              </div>
+            ) : galleryLoading ? (
+              <div className="gallery-loading">
+                <div className="loading-spinner small" />
+                <p>Loading your memories...</p>
+              </div>
+            ) : galleryImages.length === 0 ? (
+              <div className="empty-gallery">
+                <Image size={48} strokeWidth={1} />
+                <p>No memories yet</p>
+                <span>Transform your first photo to start your collection</span>
+              </div>
+            ) : (
+              <div className="gallery-grid">
+                {galleryImages.map((image) => (
+                  <motion.div
+                    key={image.id}
+                    className="gallery-item"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedGalleryImage(image)}
+                  >
+                    <img 
+                      src={image.enhanced_image_url || image.original_image_url} 
+                      alt={image.milestone_name} 
+                    />
+                    <div className="gallery-item-overlay">
+                      <span className="gallery-item-milestone">{image.milestone_name}</span>
+                      <span className="gallery-item-date">{formatDate(image.created_at)}</span>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {/* Gallery Image Detail Modal */}
+            {selectedGalleryImage && (
+              <motion.div
+                className="gallery-modal"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedGalleryImage(null)}
+              >
+                <div className="gallery-modal-content" onClick={e => e.stopPropagation()}>
+                  <button 
+                    className="modal-close"
+                    onClick={() => setSelectedGalleryImage(null)}
+                  >
+                    <X size={24} />
+                  </button>
+                  <img 
+                    src={selectedGalleryImage.enhanced_image_url} 
+                    alt={selectedGalleryImage.milestone_name} 
+                  />
+                  <div className="modal-info">
+                    <h3>{selectedGalleryImage.milestone_name}</h3>
+                    <p>{formatDate(selectedGalleryImage.created_at)}</p>
+                    <button 
+                      className="delete-btn"
+                      onClick={() => handleDeleteImage(selectedGalleryImage.id)}
+                    >
+                      <Trash2 size={18} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
           </div>
         )}
 
@@ -201,12 +329,59 @@ function MainApp({
           <div className="settings-section">
             <div className="section-header">
               <h1>Settings</h1>
-              <p>Customize your experience</p>
+              <p>Manage your account</p>
             </div>
-            <div className="settings-placeholder">
-              <Settings size={48} strokeWidth={1} />
-              <p>Settings coming soon</p>
-            </div>
+            
+            {isAuthenticated ? (
+              <div className="settings-content">
+                <div className="settings-profile">
+                  <div className="profile-avatar">
+                    <User size={32} strokeWidth={1.5} />
+                  </div>
+                  <div className="profile-info">
+                    <p className="profile-name">
+                      {user?.user_metadata?.full_name || 'ForeverFrame User'}
+                    </p>
+                    <p className="profile-email">{user?.email}</p>
+                  </div>
+                </div>
+
+                <div className="settings-list">
+                  <div className="settings-group">
+                    <h3>Account</h3>
+                    <button className="settings-item">
+                      <User size={20} strokeWidth={1.5} />
+                      <span>Edit Profile</span>
+                      <ChevronRight size={20} strokeWidth={1.5} />
+                    </button>
+                  </div>
+
+                  <div className="settings-group">
+                    <h3>App</h3>
+                    <button className="settings-item">
+                      <Image size={20} strokeWidth={1.5} />
+                      <span>Image Quality</span>
+                      <ChevronRight size={20} strokeWidth={1.5} />
+                    </button>
+                  </div>
+
+                  <div className="settings-group">
+                    <button 
+                      className="settings-item danger"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut size={20} strokeWidth={1.5} />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="settings-placeholder">
+                <User size={48} strokeWidth={1} />
+                <p>Sign in to access settings</p>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -239,4 +414,3 @@ function MainApp({
 }
 
 export default MainApp;
-
