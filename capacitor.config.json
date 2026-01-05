@@ -1,0 +1,23 @@
+{
+  "appId": "com.foreverframe.app",
+  "appName": "ForeverFrame",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "automatic",
+    "allowsLinkPreview": false,
+    "scrollEnabled": true,
+    "backgroundColor": "#FDF8F4"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#FDF8F4",
+      "showSpinner": false,
+      "launchAutoHide": true
+    },
+    "StatusBar": {
+      "style": "Dark",
+      "backgroundColor": "#FDF8F4"
+    }
+  }
+}

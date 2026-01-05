@@ -1,9 +1,12 @@
 .welcome {
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--spacing-xl);
+  padding-top: calc(var(--spacing-xl) + var(--safe-area-top));
+  padding-bottom: calc(var(--spacing-xl) + var(--safe-area-bottom));
   position: relative;
   overflow: hidden;
 }

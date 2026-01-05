@@ -8,6 +8,8 @@ import {
   Camera,
   Check
 } from 'lucide-react';
+import { Share } from '@capacitor/share';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import './PreviewScreen.css';
 
 function PreviewScreen({ originalImage, processedImage, milestone, onBack, onNewPhoto }) {
@@ -19,33 +21,62 @@ function PreviewScreen({ originalImage, processedImage, milestone, onBack, onNew
     setComparePosition(Number(e.target.value));
   };
 
-  const handleDownload = () => {
+  const triggerHaptic = async () => {
+    try {
+      await Haptics.impact({ style: ImpactStyle.Light });
+    } catch {
+      // Haptics not available (web)
+    }
+  };
+
+  const handleDownload = async () => {
+    await triggerHaptic();
+    
+    // For now, simulate saving (actual implementation would use Capacitor Filesystem)
     const link = document.createElement('a');
     link.href = processedImage;
     link.download = `foreverframe-${milestone?.id || 'memory'}.jpg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
   const handleShare = async () => {
-    if (navigator.share && processedImage) {
-      try {
-        const response = await fetch(processedImage);
-        const blob = await response.blob();
-        const file = new File([blob], 'foreverframe-memory.jpg', { type: 'image/jpeg' });
-        
-        await navigator.share({
-          title: 'ForeverFrame Memory',
-          text: `My ${milestone?.name || 'special'} moment, enhanced with ForeverFrame`,
-          files: [file],
-        });
-      } catch (error) {
-        console.log('Share cancelled or failed');
+    await triggerHaptic();
+    
+    try {
+      await Share.share({
+        title: 'ForeverFrame Memory',
+        text: `My ${milestone?.name || 'special'} moment, enhanced with ForeverFrame`,
+        dialogTitle: 'Share your memory',
+      });
+    } catch {
+      // Share cancelled or not available
+      // Fallback to Web Share API
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'ForeverFrame Memory',
+            text: `My ${milestone?.name || 'special'} moment, enhanced with ForeverFrame`,
+          });
+        } catch {
+          // Share cancelled
+        }
       }
     }
+  };
+
+  const handleBack = async () => {
+    await triggerHaptic();
+    onBack();
+  };
+
+  const handleNewPhoto = async () => {
+    await triggerHaptic();
+    onNewPhoto();
   };
 
   return (
@@ -57,7 +88,7 @@ function PreviewScreen({ originalImage, processedImage, milestone, onBack, onNew
       transition={{ duration: 0.4 }}
     >
       <header className="preview-header">
-        <button className="back-button" onClick={onBack}>
+        <button className="back-button" onClick={handleBack}>
           <ArrowLeft size={20} strokeWidth={1.5} />
         </button>
         <div className="preview-title">
@@ -161,7 +192,7 @@ function PreviewScreen({ originalImage, processedImage, milestone, onBack, onNew
               <Share2 size={20} strokeWidth={1.5} />
               <span>Share</span>
             </button>
-            <button className="action-btn secondary" onClick={onNewPhoto}>
+            <button className="action-btn secondary" onClick={handleNewPhoto}>
               <Camera size={20} strokeWidth={1.5} />
               <span>New Photo</span>
             </button>
@@ -183,4 +214,3 @@ function PreviewScreen({ originalImage, processedImage, milestone, onBack, onNew
 }
 
 export default PreviewScreen;
-
