@@ -38,7 +38,8 @@ function MainApp({
   selectedMilestone, 
   onImageSelect, 
   onMilestoneSelect, 
-  onGenerate 
+  onGenerate,
+  onSignIn
 }) {
   const fileInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState('home');
@@ -377,9 +378,15 @@ function MainApp({
                 </div>
               </div>
             ) : (
-              <div className="settings-placeholder">
-                <User size={48} strokeWidth={1} />
-                <p>Sign in to access settings</p>
+              <div className="settings-signin">
+                <div className="signin-icon">
+                  <User size={48} strokeWidth={1} />
+                </div>
+                <h2>Sign in to ForeverFrame</h2>
+                <p>Save your memories to the cloud and access them on any device</p>
+                <button className="signin-button" onClick={onSignIn}>
+                  Sign In or Create Account
+                </button>
               </div>
             )}
           </div>

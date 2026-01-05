@@ -505,6 +505,62 @@
   color: #dc3545;
 }
 
+/* Settings Sign In */
+.settings-signin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.signin-icon {
+  width: 80px;
+  height: 80px;
+  background: var(--color-blush);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-rose);
+  margin-bottom: var(--spacing-lg);
+}
+
+.settings-signin h2 {
+  font-size: 1.25rem;
+  color: var(--color-charcoal);
+  margin-bottom: var(--spacing-sm);
+}
+
+.settings-signin p {
+  color: var(--color-warm-gray);
+  font-size: 0.9rem;
+  margin-bottom: var(--spacing-xl);
+  max-width: 280px;
+}
+
+.signin-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--color-charcoal);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-normal);
+}
+
+.signin-button:hover {
+  background: #2a2a2a;
+  box-shadow: var(--shadow-lg);
+}
+
 /* Loading spinner */
 .loading-spinner {
   width: 40px;

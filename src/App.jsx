@@ -30,11 +30,11 @@ function AppContent() {
   }, [authLoading, isAuthenticated, currentScreen]);
 
   const handleGetStarted = () => {
-    if (isConfigured && !isAuthenticated) {
-      setCurrentScreen('auth');
-    } else {
-      setCurrentScreen('main');
-    }
+    setCurrentScreen('main');
+  };
+
+  const handleSignIn = () => {
+    setCurrentScreen('auth');
   };
 
   const handleAuthBack = () => {
@@ -140,7 +140,7 @@ function AppContent() {
     <div className="app">
       <AnimatePresence mode="wait">
         {currentScreen === 'welcome' && (
-          <Welcome key="welcome" onGetStarted={handleGetStarted} />
+          <Welcome key="welcome" onGetStarted={handleGetStarted} onSignIn={handleSignIn} />
         )}
         {currentScreen === 'auth' && (
           <AuthScreen key="auth" onBack={handleAuthBack} />
@@ -153,6 +153,7 @@ function AppContent() {
             onImageSelect={handleImageSelect}
             onMilestoneSelect={handleMilestoneSelect}
             onGenerate={handleGenerate}
+            onSignIn={handleSignIn}
           />
         )}
         {currentScreen === 'loading' && (

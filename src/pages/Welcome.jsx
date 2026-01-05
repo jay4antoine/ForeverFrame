@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
-import { Heart, ArrowRight } from 'lucide-react';
+import { Heart, ArrowRight, User } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import './Welcome.css';
 
-function Welcome({ onGetStarted }) {
+function Welcome({ onGetStarted, onSignIn }) {
+  const { isAuthenticated, user } = useAuth();
+
   return (
     <motion.div
       className="welcome"
@@ -51,18 +54,40 @@ function Welcome({ onGetStarted }) {
           that capture the magic of your special moments together.
         </motion.p>
 
-        <motion.button
-          className="welcome-cta"
-          onClick={onGetStarted}
+        <motion.div
+          className="welcome-buttons"
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.8, duration: 0.5 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
         >
-          <span>Begin Your Journey</span>
-          <ArrowRight size={20} strokeWidth={2} />
-        </motion.button>
+          <motion.button
+            className="welcome-cta"
+            onClick={onGetStarted}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <span>Begin Your Journey</span>
+            <ArrowRight size={20} strokeWidth={2} />
+          </motion.button>
+
+          {!isAuthenticated && (
+            <motion.button
+              className="welcome-signin"
+              onClick={onSignIn}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <User size={18} strokeWidth={2} />
+              <span>Sign In</span>
+            </motion.button>
+          )}
+
+          {isAuthenticated && (
+            <p className="welcome-user">
+              Welcome back, {user?.user_metadata?.full_name?.split(' ')[0] || 'there'}
+            </p>
+          )}
+        </motion.div>
 
         <motion.div
           className="welcome-features"
@@ -94,4 +119,3 @@ function Welcome({ onGetStarted }) {
 }
 
 export default Welcome;
-
